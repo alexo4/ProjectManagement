@@ -176,7 +176,7 @@ public class repository {
     public static ArrayList<Room> getAllRoomBookings() {
         ArrayList<Room> roomBookingList = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM Project";
+            String sql = "SELECT * FROM RoomBooking";
             ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
             while (rs.next()) {
                 Room nextRoomBooking = new Room(rs.getString("EmailAddress"),rs.getInt("RoomNumber"),rs.getDate("BookedDate").toLocalDate(),rs.getTime("BookedStartTime").toLocalTime(),rs.getTime("BookedEndTime").toLocalTime());
