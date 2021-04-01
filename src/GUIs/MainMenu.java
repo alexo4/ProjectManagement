@@ -45,6 +45,7 @@ public class MainMenu extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         bookRoomButton = new javax.swing.JButton();
+        bookRoomButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -171,6 +172,13 @@ public class MainMenu extends javax.swing.JFrame {
             }
         });
 
+        bookRoomButton1.setText("Show booked meetings");
+        bookRoomButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bookRoomButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -179,9 +187,11 @@ public class MainMenu extends javax.swing.JFrame {
                 .addContainerGap(79, Short.MAX_VALUE)
                 .addComponent(jLabel4)
                 .addGap(74, 74, 74))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(bookRoomButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(bookRoomButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(bookRoomButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -191,6 +201,8 @@ public class MainMenu extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addGap(43, 43, 43)
                 .addComponent(bookRoomButton)
+                .addGap(39, 39, 39)
+                .addComponent(bookRoomButton1)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -316,6 +328,12 @@ public class MainMenu extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    private void bookRoomButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bookRoomButton1ActionPerformed
+        showBookedRooms sbr = new showBookedRooms();
+        sbr.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_bookRoomButton1ActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -354,6 +372,7 @@ public class MainMenu extends javax.swing.JFrame {
     private javax.swing.JButton PersonnelMenuButton;
     private javax.swing.JPanel ProjectManagerPanel;
     private javax.swing.JButton bookRoomButton;
+    private javax.swing.JButton bookRoomButton1;
     private javax.swing.JLabel employeeName;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

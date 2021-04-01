@@ -5,15 +5,24 @@
  */
 package GUIs;
 
+import Objects.Employee;
+import Objects.EmployeeIdentity;
+import Objects.Room;
 import Objects.unavailableRoomTimes;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import libraryFunctions.repository;
+import static libraryFunctions.repository.currentUser;
+import static libraryFunctions.repository.getAllNames;
+import static libraryFunctions.repository.getAllRoomIDs;
+import roomBookingClasses.addEmployees;
 import roomBookingClasses.availableRooms;
 
 /**
@@ -30,6 +39,7 @@ public class roomBooking extends javax.swing.JFrame {
     public static LocalTime bookedStartTime;
     public static LocalTime bookedEndTime;
     public static int roomNumber;
+    public static int roomID;
     public static int numOfPeople;
     public static boolean tickboxState;
             
@@ -40,6 +50,9 @@ public class roomBooking extends javax.swing.JFrame {
     public static ArrayList<JButton> buttons = new ArrayList<JButton>();
     public static ArrayList<JLabel> roomLabels = new ArrayList<JLabel>();
     public static ArrayList<JLabel> timeLabels = new ArrayList<JLabel>();
+    public static ArrayList<JButton> employeeButtons = new ArrayList<JButton>();
+    public static ArrayList<String> meetingAttendees = new ArrayList<>();
+    public static ArrayList<EmployeeIdentity> namesFound;
     
     public roomBooking() {
         initComponents();
@@ -77,6 +90,40 @@ public class roomBooking extends javax.swing.JFrame {
         timeLabels.add(unavailableTimeLabel4);
         timeLabels.add(unavailableTimeLabel5);
         roomSelectPanel.setVisible(false);
+        employeeButtons.add(nameButton1);
+        employeeButtons.add(nameButton2);
+        employeeButtons.add(nameButton3);
+        employeeButtons.add(nameButton4);
+        employeeButtons.add(nameButton5);
+        employeeButtons.add(nameButton6);
+        employeeButtons.add(nameButton7);
+        employeeButtons.add(nameButton8);
+        employeeButtons.add(nameButton9);
+        employeeButtons.add(nameButton10);
+        employeeButtons.add(nameButton11);
+        employeeButtons.add(nameButton12);
+        employeeButtons.add(nameButton13);
+        employeeButtons.add(nameButton14);
+        employeeButtons.add(nameButton15);
+        nameButton1.setVisible(false);
+        nameButton2.setVisible(false);
+        nameButton3.setVisible(false);
+        nameButton4.setVisible(false);
+        nameButton5.setVisible(false);
+        nameButton6.setVisible(false);
+        nameButton7.setVisible(false);
+        nameButton8.setVisible(false);
+        nameButton9.setVisible(false);
+        nameButton10.setVisible(false);
+        nameButton11.setVisible(false);
+        nameButton12.setVisible(false);
+        nameButton13.setVisible(false);
+        nameButton14.setVisible(false);
+        nameButton15.setVisible(false);
+        preSearchPanel.setVisible(false);
+        searchPanel.setVisible(false);
+       
+        
     } 
 
     
@@ -95,7 +142,7 @@ public class roomBooking extends javax.swing.JFrame {
         }
         
         availableRoomsArray = availableRooms.bestRoomCheck();
-        System.out.println(availableRoomsArray);
+        
         if(availableRoomsArray.isEmpty()){
             
         }
@@ -139,19 +186,90 @@ public class roomBooking extends javax.swing.JFrame {
         
     }
     
+    public void searchEmployee(){
+        
+        String employeeNameSearch = searchNameField.getText();
+        namesFound = addEmployees.searchEmployees(employeeNameSearch);
+        
+        if(namesFound.isEmpty()){
+            
+        }
+        else{
+            int count = 0;
+            int maxCount = namesFound.size();
+            for(JButton nameButton : employeeButtons){
+                nameButton.setText(String.valueOf(namesFound.get(count).getEmployee_Fname())+" "+String.valueOf(namesFound.get(count).getEmployee_Lname()));
+                nameButton.setVisible(true);
+                count++;
+                if(count == maxCount){
+                    break;
+                }
+            }
+        }
+        
+        
+    }
     
+    public void addAttendees(int nameButtonNum){
+        boolean alreadyThere = false;
+        for (int i = 0; i < meetingAttendees.size(); i++) {
+            if(meetingAttendees.get(i).equals(namesFound.get(nameButtonNum).getEmployee_Id())){
+                alreadyThere = true;
+            }
+        }
+        if(alreadyThere == false){
+            meetingAttendees.add(String.valueOf(namesFound.get(nameButtonNum).getEmployee_Id()));
+            System.out.println(String.valueOf(namesFound.get(nameButtonNum).getEmployee_Id()));
+        }
+    }
+    
+    public void createRoomBooking(String buttonText){
+        
+        for (int i = 1; i < 6; i++) {
+            if(buttonText.contains(String.valueOf(i))){
+                roomNumber = i;
+                break;
+            }
+        }
+        ArrayList<String> allRoomIDs = getAllRoomIDs();
+        Random rand = new Random();
+        roomID = 1111;
+        while(allRoomIDs.contains(roomID)){
+            roomID = rand.nextInt(9000)+1000;
+        }
+        
+        try{
+            
+            Room nr = new Room(email,roomNumber,bookedDate,bookedStartTime,bookedEndTime,repository.currentUser.getEmployee_Id(),String.valueOf(roomID));
+            repository.insertNewRoomBooking(nr);
+        }catch(Exception e){
+            System.out.println("Error in Room Booking "+e);
+        }
+        preSearchPanel.setVisible(true);
+    }
 
     
     public void displayWheelChairRoom(){
-        
+        System.out.println("hi");
         if(numOfPeople > 15){
             displayRoomError.setText("There are too many people for the disabled access room");
-            resetSystem();
+            roomSelectPanel.setVisible(false);
+            bookingDetailsPanel.setVisible(true);
+            
         }
         
-//        if(unavailableRooms.contains(4)){
-//            resetSystem();
-//        }
+        boolean unavailable = false;
+        for (int i = 0; i < unavailableRooms.size(); i++) {
+            if(unavailableRooms.get(i).getUnavailableRoomNumber() == 4){
+                unavailable = true;        
+                    
+            } 
+        }
+        
+        if(unavailable == true){
+            roomSelectPanel.setVisible(false);
+            bookingDetailsPanel.setVisible(true);
+        }
         
         
         RoomButton1.setText("Room 4");
@@ -159,9 +277,7 @@ public class roomBooking extends javax.swing.JFrame {
         
     }
         
-    public void resetSystem(){
-        System.out.println("hi");
-    }    
+       
         
     /**
      * This method is called from within the constructor to initialize the form.
@@ -220,10 +336,30 @@ public class roomBooking extends javax.swing.JFrame {
         unavailableTimeLabel5 = new javax.swing.JLabel();
         jButton8 = new javax.swing.JButton();
         jButton9 = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
+        preSearchPanel = new javax.swing.JPanel();
         jLabel24 = new javax.swing.JLabel();
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
+        searchPanel = new javax.swing.JPanel();
+        searchNameField = new javax.swing.JTextField();
+        jLabel13 = new javax.swing.JLabel();
+        nameButton1 = new javax.swing.JButton();
+        nameButton2 = new javax.swing.JButton();
+        nameButton3 = new javax.swing.JButton();
+        nameButton4 = new javax.swing.JButton();
+        nameButton5 = new javax.swing.JButton();
+        nameButton6 = new javax.swing.JButton();
+        nameButton7 = new javax.swing.JButton();
+        nameButton8 = new javax.swing.JButton();
+        nameButton9 = new javax.swing.JButton();
+        nameButton10 = new javax.swing.JButton();
+        jButton15 = new javax.swing.JButton();
+        nameButton11 = new javax.swing.JButton();
+        nameButton12 = new javax.swing.JButton();
+        nameButton13 = new javax.swing.JButton();
+        nameButton14 = new javax.swing.JButton();
+        nameButton15 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         jLabel25.setText("jLabel25");
 
@@ -435,12 +571,32 @@ public class roomBooking extends javax.swing.JFrame {
         });
 
         RoomButton2.setText("jButton2");
+        RoomButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RoomButton2ActionPerformed(evt);
+            }
+        });
 
         RoomButton3.setText("jButton3");
+        RoomButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RoomButton3ActionPerformed(evt);
+            }
+        });
 
         RoomButton4.setText("jButton4");
+        RoomButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RoomButton4ActionPerformed(evt);
+            }
+        });
 
         RoomButton5.setText("jButton5");
+        RoomButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RoomButton5ActionPerformed(evt);
+            }
+        });
 
         jLabel12.setText("Unavailable Rooms:");
 
@@ -484,6 +640,16 @@ public class roomBooking extends javax.swing.JFrame {
         roomSelectPanel.setLayout(roomSelectPanelLayout);
         roomSelectPanelLayout.setHorizontalGroup(
             roomSelectPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roomSelectPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(260, 260, 260))
+            .addGroup(roomSelectPanelLayout.createSequentialGroup()
+                .addGap(186, 186, 186)
+                .addComponent(displayRoomError, javax.swing.GroupLayout.PREFERRED_SIZE, 238, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(roomSelectPanelLayout.createSequentialGroup()
                 .addGap(61, 61, 61)
                 .addGroup(roomSelectPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -511,16 +677,6 @@ public class roomBooking extends javax.swing.JFrame {
                         .addComponent(unavailableTimeLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(unavailableTimeLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addGap(19, 19, 19))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roomSelectPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(260, 260, 260))
-            .addGroup(roomSelectPanelLayout.createSequentialGroup()
-                .addGap(186, 186, 186)
-                .addComponent(displayRoomError, javax.swing.GroupLayout.PREFERRED_SIZE, 238, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         roomSelectPanelLayout.setVerticalGroup(
             roomSelectPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -561,10 +717,10 @@ public class roomBooking extends javax.swing.JFrame {
                 .addGroup(roomSelectPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton9)
                     .addComponent(jButton8))
-                .addContainerGap(52, Short.MAX_VALUE))
+                .addContainerGap(44, Short.MAX_VALUE))
         );
 
-        jLabel24.setText("jLabel24");
+        jLabel24.setText("Would you like to add anyone to this meeting?");
 
         jButton6.setText("Yes");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
@@ -574,31 +730,197 @@ public class roomBooking extends javax.swing.JFrame {
         });
 
         jButton7.setText("No");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(38, 38, 38)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout preSearchPanelLayout = new javax.swing.GroupLayout(preSearchPanel);
+        preSearchPanel.setLayout(preSearchPanelLayout);
+        preSearchPanelLayout.setHorizontalGroup(
+            preSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(preSearchPanelLayout.createSequentialGroup()
+                .addGroup(preSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(preSearchPanelLayout.createSequentialGroup()
+                        .addGap(38, 38, 38)
                         .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(86, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(preSearchPanelLayout.createSequentialGroup()
+                        .addContainerGap(38, Short.MAX_VALUE)
+                        .addComponent(jLabel24)))
+                .addContainerGap(50, Short.MAX_VALUE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        preSearchPanelLayout.setVerticalGroup(
+            preSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(preSearchPanelLayout.createSequentialGroup()
                 .addGap(35, 35, 35)
                 .addComponent(jLabel24)
                 .addGap(55, 55, 55)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(preSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton6)
                     .addComponent(jButton7))
-                .addContainerGap(46, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jLabel13.setText("Search:");
+
+        nameButton1.setText("jButton1");
+        nameButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton1ActionPerformed(evt);
+            }
+        });
+
+        nameButton2.setText("jButton2");
+        nameButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton2ActionPerformed(evt);
+            }
+        });
+
+        nameButton3.setText("jButton3");
+        nameButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton3ActionPerformed(evt);
+            }
+        });
+
+        nameButton4.setText("jButton4");
+        nameButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton4ActionPerformed(evt);
+            }
+        });
+
+        nameButton5.setText("jButton5");
+        nameButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton5ActionPerformed(evt);
+            }
+        });
+
+        nameButton6.setText("jButton10");
+        nameButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton6ActionPerformed(evt);
+            }
+        });
+
+        nameButton7.setText("jButton11");
+        nameButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameButton7ActionPerformed(evt);
+            }
+        });
+
+        nameButton8.setText("jButton12");
+
+        nameButton9.setText("jButton13");
+
+        nameButton10.setText("jButton14");
+
+        jButton15.setText("search");
+        jButton15.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton15ActionPerformed(evt);
+            }
+        });
+
+        nameButton11.setText("jButton14");
+
+        nameButton12.setText("jButton14");
+
+        nameButton13.setText("jButton14");
+
+        nameButton14.setText("jButton14");
+
+        nameButton15.setText("jButton14");
+
+        jButton1.setText("Confirm");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout searchPanelLayout = new javax.swing.GroupLayout(searchPanel);
+        searchPanel.setLayout(searchPanelLayout);
+        searchPanelLayout.setHorizontalGroup(
+            searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(searchPanelLayout.createSequentialGroup()
+                .addGap(29, 29, 29)
+                .addComponent(jLabel13)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(nameButton10)
+                    .addComponent(nameButton9)
+                    .addComponent(nameButton8)
+                    .addComponent(nameButton7)
+                    .addGroup(searchPanelLayout.createSequentialGroup()
+                        .addComponent(searchNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(40, 40, 40)
+                        .addComponent(jButton15))
+                    .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(nameButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(nameButton2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(nameButton3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(nameButton4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(nameButton5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(nameButton6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(nameButton13)
+                    .addComponent(nameButton11)
+                    .addComponent(nameButton12)
+                    .addComponent(nameButton14)
+                    .addComponent(nameButton15))
+                .addContainerGap(118, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, searchPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(149, 149, 149))
+        );
+        searchPanelLayout.setVerticalGroup(
+            searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(searchPanelLayout.createSequentialGroup()
+                .addGap(57, 57, 57)
+                .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(searchNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel13)
+                    .addComponent(jButton15))
+                .addGap(31, 31, 31)
+                .addComponent(nameButton1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(nameButton11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
+                .addComponent(nameButton12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton13)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton15)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameButton14)
+                .addGap(7, 7, 7)
+                .addComponent(jButton1)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -609,31 +931,42 @@ public class roomBooking extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(416, 416, 416)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(preSearchPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(33, 33, 33)
                         .addComponent(emailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(42, 42, 42)
                         .addComponent(bookingDetailsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(roomSelectPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(124, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
+                        .addComponent(roomSelectPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(50, 50, 50)))
+                .addComponent(searchPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(201, 201, 201))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(42, 42, 42)
-                        .addComponent(emailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(42, 42, 42)
+                                .addComponent(emailPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(72, 72, 72)
+                                .addComponent(roomSelectPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(269, 269, 269)
+                        .addComponent(preSearchPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(60, 60, 60)
-                        .addComponent(bookingDetailsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(88, 88, 88)
-                        .addComponent(roomSelectPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(23, 23, 23)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(60, 60, 60)
+                                .addComponent(bookingDetailsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(176, 176, 176)
+                                .addComponent(searchPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -694,7 +1027,7 @@ public class roomBooking extends javax.swing.JFrame {
                 detailsErrorMessage.setText("Need at least one person");
                 detailsErrorMessage.setVisible(true);
             }else{
-                System.out.println("hi");    
+                    
                 numOfPeople = Integer.parseInt(numOfPeopleField.getText());
                 tickboxState = wheelchairTick.isSelected();
                 displayAvailableRooms();
@@ -710,11 +1043,12 @@ public class roomBooking extends javax.swing.JFrame {
     }//GEN-LAST:event_detailsConfirmButtonActionPerformed
 
     private void RoomButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RoomButton1ActionPerformed
-        
+        String buttonText = RoomButton1.getText();
+        createRoomBooking(buttonText);
     }//GEN-LAST:event_RoomButton1ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
+        searchPanel.setVisible(true);
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
@@ -727,6 +1061,104 @@ public class roomBooking extends javax.swing.JFrame {
         roomSelectPanel.setVisible(false);
         bookingDetailsPanel.setVisible(true);
     }//GEN-LAST:event_jButton8ActionPerformed
+
+    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
+        nameButton1.setVisible(false);
+        nameButton2.setVisible(false);
+        nameButton3.setVisible(false);
+        nameButton4.setVisible(false);
+        nameButton5.setVisible(false);
+        nameButton6.setVisible(false);
+        nameButton7.setVisible(false);
+        nameButton8.setVisible(false);
+        nameButton9.setVisible(false);
+        nameButton10.setVisible(false);
+        nameButton11.setVisible(false);
+        nameButton12.setVisible(false);
+        nameButton13.setVisible(false);
+        nameButton14.setVisible(false);
+        nameButton15.setVisible(false);
+        
+        searchEmployee();
+    }//GEN-LAST:event_jButton15ActionPerformed
+
+    private void nameButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton1ActionPerformed
+        int nameButtonNum = 0;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton1ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        repository.insertNewEmployeeRooms(meetingAttendees, roomID);
+        MainMenu main = new MainMenu();
+        main.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+       
+        ArrayList<String> allRoomIDs = getAllRoomIDs();
+        Random rand = new Random();
+        roomID = 1111;
+        while(allRoomIDs.contains(roomID)){
+            roomID = rand.nextInt(9000)+1000;
+        }
+        
+        meetingAttendees.add(currentUser.getEmployee_Id());
+        repository.insertNewEmployeeRooms(meetingAttendees, roomID);
+        MainMenu main = new MainMenu();
+        main.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void RoomButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RoomButton2ActionPerformed
+        String buttonText = RoomButton2.getText();
+        createRoomBooking(buttonText);        
+    }//GEN-LAST:event_RoomButton2ActionPerformed
+
+    private void RoomButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RoomButton3ActionPerformed
+        String buttonText = RoomButton3.getText();
+        createRoomBooking(buttonText);
+    }//GEN-LAST:event_RoomButton3ActionPerformed
+
+    private void RoomButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RoomButton4ActionPerformed
+        String buttonText = RoomButton4.getText();
+        createRoomBooking(buttonText);
+    }//GEN-LAST:event_RoomButton4ActionPerformed
+
+    private void RoomButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RoomButton5ActionPerformed
+        String buttonText = RoomButton5.getText();
+        createRoomBooking(buttonText);
+    }//GEN-LAST:event_RoomButton5ActionPerformed
+
+    private void nameButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton2ActionPerformed
+        int nameButtonNum = 1;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton2ActionPerformed
+
+    private void nameButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton3ActionPerformed
+        int nameButtonNum = 2;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton3ActionPerformed
+
+    private void nameButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton4ActionPerformed
+        int nameButtonNum = 3;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton4ActionPerformed
+
+    private void nameButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton5ActionPerformed
+        int nameButtonNum = 4;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton5ActionPerformed
+
+    private void nameButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton6ActionPerformed
+        int nameButtonNum = 5;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton6ActionPerformed
+
+    private void nameButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameButton7ActionPerformed
+        int nameButtonNum = 6;
+        addAttendees(nameButtonNum);
+    }//GEN-LAST:event_nameButton7ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -781,6 +1213,8 @@ public class roomBooking extends javax.swing.JFrame {
     private javax.swing.JPanel emailPanel;
     private javax.swing.JTextField endTimeField;
     private javax.swing.JLabel invalidEmailMessage;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
@@ -789,6 +1223,7 @@ public class roomBooking extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel24;
@@ -801,9 +1236,26 @@ public class roomBooking extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JButton nameButton1;
+    private javax.swing.JButton nameButton10;
+    private javax.swing.JButton nameButton11;
+    private javax.swing.JButton nameButton12;
+    private javax.swing.JButton nameButton13;
+    private javax.swing.JButton nameButton14;
+    private javax.swing.JButton nameButton15;
+    private javax.swing.JButton nameButton2;
+    private javax.swing.JButton nameButton3;
+    private javax.swing.JButton nameButton4;
+    private javax.swing.JButton nameButton5;
+    private javax.swing.JButton nameButton6;
+    private javax.swing.JButton nameButton7;
+    private javax.swing.JButton nameButton8;
+    private javax.swing.JButton nameButton9;
     private javax.swing.JTextField numOfPeopleField;
+    private javax.swing.JPanel preSearchPanel;
     private javax.swing.JPanel roomSelectPanel;
+    private javax.swing.JTextField searchNameField;
+    private javax.swing.JPanel searchPanel;
     private javax.swing.JTextField startTimeField;
     private javax.swing.JLabel unavailableRoomsLabel1;
     private javax.swing.JLabel unavailableRoomsLabel2;

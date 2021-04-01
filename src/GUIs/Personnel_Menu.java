@@ -215,9 +215,8 @@ public class Personnel_Menu extends javax.swing.JFrame {
             }
             printer.printObjects();
         }
-
+        
         //add the rest of the menu items for printing
-
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed

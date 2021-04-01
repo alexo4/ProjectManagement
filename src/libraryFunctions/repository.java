@@ -5,17 +5,21 @@ import java.sql.Date;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 //This class gets things in and out of the database
 
 public class repository {
 
     private static final String DatabaseLocation = System.getProperty("user.dir") + "\\ProjectManagment.accdb";
     private static Connection con;
-    private static Employee currentUser;
+    public static Employee currentUser;
 
     public static Connection getConnection() {
         try {
@@ -179,7 +183,7 @@ public class repository {
             String sql = "SELECT * FROM RoomBooking";
             ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
             while (rs.next()) {
-                Room nextRoomBooking = new Room(rs.getString("EmailAddress"),rs.getInt("RoomNumber"),rs.getDate("BookedDate").toLocalDate(),rs.getTime("BookedStartTime").toLocalTime(),rs.getTime("BookedEndTime").toLocalTime());
+                Room nextRoomBooking = new Room(rs.getString("EmailAddress"),rs.getInt("RoomNumber"),rs.getDate("BookedDate").toLocalDate(),rs.getTime("BookedStartTime").toLocalTime(),rs.getTime("BookedEndTime").toLocalTime(),rs.getString("RoomBookingID"),rs.getString("Organiser_Id") );
                 roomBookingList.add(nextRoomBooking);
             }
             con.close();
@@ -187,6 +191,65 @@ public class repository {
             System.out.println("Error in the repository class: " + e);
         }
         return roomBookingList;
+    }
+    
+    public static ArrayList<EmployeeIdentity> getAllNames(){
+        ArrayList<EmployeeIdentity> allNames = new ArrayList<>();
+        
+        try{
+            String sql = "SELECT Employee_Fname, Employee_Lname, Employee_Id FROM Employee";
+            ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
+            while (rs.next()) {
+                
+                EmployeeIdentity nei = new EmployeeIdentity(rs.getString("Employee_Id"), rs.getString("Employee_Fname"), rs.getString("Employee_Lname"));
+                allNames.add(nei);
+                
+            }
+            con.close();
+            
+        } catch(Exception e){
+            System.out.println("Error in the repository class: " + e);
+        }
+        
+        
+        return allNames;
+    }
+    
+    public static ArrayList<String> getAllRoomIDs(){
+        ArrayList<String> allRoomIDs = new ArrayList<>();
+        
+        try{
+            String sql = "SELECT RoomBookingID FROM EmployeeRooms";
+            ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
+            while(rs.next()){
+                allRoomIDs.add(rs.getString("RoomBookingID"));
+                
+            }
+            con.close();
+        } catch (Exception e) {
+            System.out.println("Error in the repository class: " + e);
+        }
+        
+        return allRoomIDs;
+    }
+    
+    public static ArrayList<currentBookedRooms> getAllCurrentBookedRooms(){
+        ArrayList<currentBookedRooms> allCurrentBookedRooms = new ArrayList<>();
+        
+        try{
+            String sql = "SELECT EmployeeRooms.Employee_Id, RoomBooking.RoomNumber, RoomBooking.BookedDate, RoomBooking.BookedStartTime, RoomBooking.BookedEndTime\n" +
+                         "FROM RoomBooking INNER JOIN EmployeeRooms ON RoomBooking.RoomBookingID = EmployeeRooms.RoomBookingID\n" +
+                         "WHERE (((EmployeeRooms.Employee_Id)="+repository.getCurrentUser().getEmployee_Id()+"));";
+            ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
+            while(rs.next()){
+                currentBookedRooms cbr = new currentBookedRooms(rs.getInt("RoomNumber"),rs.getDate("BookedDate").toLocalDate(),rs.getTime("BookedStartTime").toLocalTime(),rs.getTime("BookedEndTime").toLocalTime());
+                allCurrentBookedRooms.add(cbr);
+            }
+            con.close();
+        }catch(Exception e){
+            System.out.println("Error in the repository class: " + e);
+        }
+        return allCurrentBookedRooms;
     }
 
 
@@ -399,25 +462,55 @@ public class repository {
         }
     }
     
-    public static void insertNewRoomBooking(Room room,Employee employee) {
+    public static void insertNewRoomBooking(Room room) {
 
         try {
             String sql = "SELECT RoomBooking.* FROM RoomBooking";
+            
             ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
+            
             if (rs.next()) {
                 rs.moveToInsertRow();
                 //Primary key not needed as it is an autonumber, it adds that field automatically
-                rs.updateString("Employee_Id", employee.getEmployee_Id());
+                rs.updateString("Organiser_Id", room.getOrganiserID());
+                System.out.println("hi");
                 rs.updateString("EmailAddress", room.getEmailAddress());
-                rs.updateTime("BookedStartTime", Time.valueOf(room.getBookedStartTime()));
-                rs.updateTime("BookedEndTime", Time.valueOf(room.getBookedEndTime()));
+                System.out.println("hi");
+                rs.updateString("RoomBookingID", room.getRoomID());
+                System.out.println("hi");
+                java.sql.Time time = java.sql.Time.valueOf(room.getBookedStartTime());
+                //rs.updateTime("BookedStartTime",Time.valueOf(room.getBookedStartTime()));
+                //rs.updateTime("BookedEndTime", Time.valueOf(room.getBookedEndTime()));
+                System.out.println("hi");
                 rs.updateDate("BookedDate", Date.valueOf(room.getBookedDate()));
+                System.out.println("hi");
                 rs.updateInt("RoomNumber", room.getRoomNumber());
+                System.out.println("hi");
                 rs.insertRow();
             }
             con.close();
         } catch (Exception e) {
             System.out.println("Error in the repository class: " + e);
+        }
+    }
+    
+    public static void insertNewEmployeeRooms(ArrayList<String> meetingAttendees,Integer roomID){
+        
+        for (int i = 0; i < meetingAttendees.size(); i++) {
+            try {
+                
+            String sql = "SELECT EmployeeRooms.* FROM EmployeeRooms";
+            ResultSet rs = executeSQL.executeQuery(getConnection(), sql);
+            if (rs.next()) {
+                rs.moveToInsertRow();
+                rs.updateString("Employee_Id", meetingAttendees.get(i));
+                rs.updateString("RoomBookingID", String.valueOf(roomID));
+            }
+            con.close();
+            }
+            catch(Exception e){
+               System.out.println("Error in the repository class: " + e);     
+            }
         }
     }
     
